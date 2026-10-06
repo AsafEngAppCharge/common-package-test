@@ -1,0 +1,16 @@
+{
+    "name": "Appcharge.SdkA",
+    "rootNamespace": "Appcharge.SdkA",
+    "references": [
+        "Appcharge.Common.Threading"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

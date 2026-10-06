@@ -1,0 +1,8 @@
+{
+  "name": "com.appcharge.common",
+  "displayName": "Appcharge Common",
+  "version": "1.0.0",
+  "unity": "2021.3",
+  "description": "Shared Unity glue: main-thread dispatcher and idempotent Android Gradle/manifest helpers.",
+  "author": { "name": "Appcharge" }
+}
