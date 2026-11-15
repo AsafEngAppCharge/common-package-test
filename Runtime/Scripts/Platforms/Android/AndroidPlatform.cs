@@ -15,6 +15,7 @@ namespace Appcharge.PaymentLinks.Platforms.Android
 		private BrowserMode _browserMode = BrowserMode.Internal;
 		private bool _debugMode = false;
 		private bool _portraitOrientationLock = false;
+		private bool _halfScreen = false;
 
 		private void EnsureInitialized()
 		{
@@ -44,6 +45,7 @@ namespace Appcharge.PaymentLinks.Platforms.Android
 			}
 
 			_browserMode = editorConfig.BrowserMode;
+			_halfScreen = editorConfig.EnableHalfScreen;
 			Init(editorConfig.CheckoutPublicKey, editorConfig.Environment.ToString().ToLowerInvariant(), callback);
 		}
 
@@ -61,6 +63,7 @@ namespace Appcharge.PaymentLinks.Platforms.Android
 			if (editorConfig != null)
 			{
 				_browserMode = editorConfig.BrowserMode;
+				_halfScreen = editorConfig.EnableHalfScreen;
 			}
 
 			Callback = callback;
@@ -115,6 +118,11 @@ namespace Appcharge.PaymentLinks.Platforms.Android
 			{
 				SetCheckoutServiceMode((bool)value);
 			}
+
+			if (property.Equals("halfScreen") && value is bool)
+			{
+				SetHalfScreen((bool)value);
+			}
 		}
 
 		private void SetBrowserMode(BrowserMode mode)
@@ -166,11 +174,24 @@ namespace Appcharge.PaymentLinks.Platforms.Android
 			_bridgeApi.Call<bool>("setCheckoutServiceMode", checkoutServiceMode);
 		}
 
+		private void SetHalfScreen(bool halfScreen) {
+			EnsureInitialized();
+			if (_bridgeApi == null)
+			{
+				Debug.LogError("BridgeAPI is not initialized.");
+				return;
+			}
+
+			_halfScreen = halfScreen;
+			_bridgeApi.Call<bool>("enableHalfScreen", halfScreen);
+		}
+
 		public void OnInitialized()
 		{
 			SetBrowserMode(_browserMode);
 			SetDebugMode(_debugMode);
 			SetPortraitOrientationLock(_portraitOrientationLock);
+			SetHalfScreen(_halfScreen);
 		}
 
 		private class CallbackProxy : AndroidJavaProxy

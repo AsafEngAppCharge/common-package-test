@@ -30,6 +30,9 @@ namespace Appcharge.PaymentLinks.Config {
         [Tooltip("Whether to force the portrait orientation.")]
         public bool PortraitOrientationLock = false;
 
+        [Tooltip("When enabled, launches checkout in half-screen mode (CCT on Android, SFVC on iOS). Default is off.")]
+        public bool EnableHalfScreen = false;
+
         [Tooltip("When enabled, automatically configures iOS entitlements integration (associated domains). Use the exclusion options below to disable specific operations.")]
         public bool EnableIOSEntitlementsIntegration = true;
 

@@ -67,7 +67,11 @@ public func acbridge_setDebugMode(debugMode: Bool) {
     ACBridgeAPI.setDebugMode = debugMode
 }
 
-s
+@_cdecl("acbridge_enableHalfScreen")
+public func acbridge_enableHalfScreen(enableHalfScreen: Bool) {
+    ACBridgeAPI.halfScreen = enableHalfScreen
+}
+
 class ACUnityPaymentLinksDelegate: NSObject, ACPaymentLinksDelegate {
     private struct PurchaseResultPayload: Encodable {
         let errorJson: String

@@ -17,6 +17,7 @@ public class AppchargeConfigEditor : Editor
     
     // iOS Integration Settings
     SerializedProperty portraitOrientationLock;
+    SerializedProperty enableHalfScreen;
     SerializedProperty enableIOSEntitlementsIntegration;
     SerializedProperty enableIOSURLSchemeIntegration;
     SerializedProperty enableIOSFrameworkIntegration;
@@ -77,6 +78,7 @@ public class AppchargeConfigEditor : Editor
         browserMode = serializedObject.FindProperty("BrowserMode");
         enablePurchaseRecovery = serializedObject.FindProperty("EnablePurchaseRecovery");
         portraitOrientationLock = serializedObject.FindProperty("PortraitOrientationLock");
+        enableHalfScreen = serializedObject.FindProperty("EnableHalfScreen");
 
         // iOS Integration Settings
         enableIntegrationOptions = serializedObject.FindProperty("EnableIntegrationOptions");
@@ -160,6 +162,7 @@ public class AppchargeConfigEditor : Editor
             EditorGUILayout.LabelField("Configuration Settings", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(enableMainThreadDispatcher);
             EditorGUILayout.PropertyField(enablePurchaseRecovery);
+            EditorGUILayout.PropertyField(enableHalfScreen);
             EditorGUILayout.PropertyField(enableDebugMode);
             EditorGUILayout.PropertyField(browserMode);
 

@@ -30,6 +30,9 @@ namespace Appcharge.PaymentLinks.Platforms.iOS {
 
         [DllImport("__Internal")]
         private static extern void acbridge_setBrowserMode(string mode);
+
+        [DllImport("__Internal")]
+        private static extern void acbridge_enableHalfScreen(bool halfScreen);
 #else
         // Stub implementations when not on iOS
         private static void acbridge_initialize(string configJson) { }
@@ -39,12 +42,14 @@ namespace Appcharge.PaymentLinks.Platforms.iOS {
         private static void acbridge_setPortraitOrientationLock(bool portraitOrientationLock) { }
         private static void acbridge_setDebugMode(bool debugMode) { }
         private static void acbridge_setBrowserMode(string mode) { }
+        private static void acbridge_enableHalfScreen(bool halfScreen) { }
 #endif
         private bool _eventHandlerInitialized = false;
         private BrowserMode _browserMode = BrowserMode.Internal;
         private bool _portraitOrientationLock = false;
         private bool _debugMode = false;
         private string _applinksDomain = null;
+        private bool _halfScreen = false;
         public ICheckoutPurchase Callback { get; set; }
 
         public void Init(ICheckoutPurchase callback)
@@ -69,7 +74,8 @@ namespace Appcharge.PaymentLinks.Platforms.iOS {
             
             _browserMode = editorConfig.BrowserMode;
             _debugMode = editorConfig.EnableDebugMode;
-            _portraitOrientationLock = editorConfig.PortraitOrientationLock;    
+            _portraitOrientationLock = editorConfig.PortraitOrientationLock;
+            _halfScreen = editorConfig.EnableHalfScreen;
             _applinksDomain = editorConfig.AssociatedDomain;
 
             InternalInit(checkoutToken, environment, callback, _applinksDomain, _browserMode == BrowserMode.Internal);   
@@ -165,6 +171,16 @@ namespace Appcharge.PaymentLinks.Platforms.iOS {
            {
                SetDebugMode((bool)value);
            }
+
+           if (property.Equals("halfScreen") && value is bool)
+           {
+               SetHalfScreen((bool)value);
+           }
+        }
+
+        private void SetHalfScreen(bool halfScreen) {
+            _halfScreen = halfScreen;
+            acbridge_enableHalfScreen(halfScreen);
         }
 
         private void SetPortraitOrientationLock(bool portraitOrientationLock) {
@@ -186,6 +202,7 @@ namespace Appcharge.PaymentLinks.Platforms.iOS {
             SetDebugMode(_debugMode);
             SetBrowserMode(_browserMode);
             SetPortraitOrientationLock(_portraitOrientationLock);
+            SetHalfScreen(_halfScreen);
         }
     }
 }
