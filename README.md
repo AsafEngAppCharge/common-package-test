@@ -1,38 +1,144 @@
-# common-package-test
+# Appcharge Payment Links SDK (Unity)
+A lightweight Unity SDK for integrating **Appcharge Payment Links** into your game.
+Use it to open a secure checkout and handle purchase callbacks with minimal setup.
 
-Minimal Unity **2022.3.55f1** project that proves a third UPM package can be shared by two SDKs.
+**Supported platforms:** Android, iOS, WebGL, and Unity Editor.
 
-## Layout
+---
+## Features
+- :link: Open Appcharge checkout directly from your Unity game
+- :credit_card: Receive purchase success / failure / cancel callbacks
+- :jigsaw: Easy integration using `ICheckoutPurchase`
+- :gear: Automatic platform integration via `AppchargeConfig` (manifest, Gradle, iOS entitlements, and more)
+- :package: Distributed as a Unity Package Manager (UPM) package
 
+---
+## Installation (UPM via Git URL)
+1. Open **Unity**
+2. Go to **Window → Package Manager**
+3. Click the **+** button → **Add package from git URL…**
+4. Enter your Git URL
+5. Click **Add**
+
+Import the included sample from the Package Manager if you want a ready-made integration reference.
+
+---
+## Configuration
+Create an **AppchargeConfig** asset via **Appcharge → Configuration → AppchargeConfig** and place it at `Assets/Resources/Appcharge/AppchargeConfig.asset`.
+
+Key settings:
+- **Checkout Public Key** and **Environment** (Sandbox, Staging, or Production) — required for `Init(this)`
+- **Browser Mode** — `Internal` (in-app) or `External` (system browser)
+- **Enable Integration Options** — automatic Android/iOS/WebGL build-time setup
+- **Enable Debug Mode** — prints integration changes to the Unity console; details are also written to `Logs/Appcharge/AppchargeIntegrationLogs.log`
+
+---
+## Basic Usage
+### 1. Import Required Namespaces
+```c#
+using Appcharge.PaymentLinks;
+using Appcharge.PaymentLinks.Interfaces;
+using Appcharge.PaymentLinks.Models;
+using UnityEngine;
 ```
-Packages/
-  com.appcharge.common/     # shared dispatcher + GradleEnsure + ManifestEnsure
-  com.appcharge.sdk.a/      # depends on com.appcharge.common 1.0.0
-  com.appcharge.sdk.b/      # depends on com.appcharge.common 1.0.0
-Assets/Plugins/Android/     # host templates both post-processors mutate
+
+### 2. Implement `ICheckoutPurchase`
+Create a MonoBehaviour that receives callbacks from the SDK:
+```c#
+public class CheckoutSample : MonoBehaviour, ICheckoutPurchase
+{
+    public string CustomerId = "John Doe";
+
+    public void Init()
+    {
+        PaymentLinksController.Instance.Init(this);
+    }
+
+    public void OnPurchaseSuccess(OrderResponseModel order)
+    {
+        Debug.Log($"Purchase Success: OrderId={order.orderId}, PaymentMethod={order.paymentMethodName}");
+    }
+
+    public void OnPurchaseCanceled(ErrorMessage error, OrderResponseModel order)
+    {
+        Debug.Log($"Purchase Canceled: Code={error.code}, Message={error.message}, OrderId={order?.orderId}");
+    }
+
+    public void OnPurchaseFailed(ErrorMessage error, OrderResponseModel order)
+    {
+        Debug.LogError($"Purchase Failed: Code={error.code}, Message={error.message}, OrderId={order?.orderId}");
+    }
+
+    public void OnInitialized()
+    {
+        Debug.Log("Payment Links SDK Initialized: " + PaymentLinksController.Instance.GetSdkVersion());
+    }
+
+    public void OnInitializeFailed(ErrorMessage error)
+    {
+        Debug.LogError($"Init Failed: Code={error.code}, Message={error.message}");
+    }
+}
 ```
 
-Embedded packages under `Packages/` are discovered automatically. `sdk.a` / `sdk.b` `package.json` declare:
-
-```json
-"dependencies": { "com.appcharge.common": "1.0.0" }
+---
+## Typical Integration Flow
+### **1. Initialize the SDK**
+Uses credentials from `AppchargeConfig`:
+```c#
+PaymentLinksController.Instance.Init(this);
 ```
 
-Unity resolves that from the sibling embedded package — **one** `Appcharge.Common.Threading` assembly, not two copies.
+Or pass credentials explicitly:
+```c#
+PaymentLinksController.Instance.Init(checkoutPublicKey, "sandbox", this);
+```
+Always call `Init` before `OpenCheckout`.
 
-## What to verify in the Editor
+### **2. Create a checkout session (your backend)**
+Your backend returns the following:
+- `purchaseId`
+- `parsedUrl`
 
-1. Open this folder as a Unity project (2022.3.55f1).
-2. Console should compile with no duplicate-type errors.
-3. Menu **Appcharge → Common Test → Apply SDK A Android Ensures**, then the same for **SDK B**.
-4. `Assets/Plugins/Android/mainTemplate.gradle` should contain:
-   - `androidx.core:core-ktx:1.13.1` **once**
-   - `com.appcharge:android-sdk-a:1.0.0`
-   - `com.appcharge:android-sdk-b:1.0.0`
-5. `AndroidManifest.xml` should contain `INTERNET` **once**, plus `REQUEST_INSTALL_PACKAGES` from B, plus two distinct engine meta keys.
-6. Play mode: `CommonPackageSmokeTest` on a scene object logs two pings through the **same** dispatcher GameObject.
+### **3. Open checkout**
+Pass the customer ID when opening checkout (not during init):
+```c#
+PaymentLinksController.Instance.OpenCheckout(purchaseId, parsedUrl, customerId);
+```
 
-## What this is not
+### **4. Handle callbacks**
+- `OnInitialized()`
+- `OnInitializeFailed(ErrorMessage error)`
+- `OnPurchaseSuccess(OrderResponseModel order)`
+- `OnPurchaseCanceled(ErrorMessage error, OrderResponseModel order)`
+- `OnPurchaseFailed(ErrorMessage error, OrderResponseModel order)`
 
-- Not a scoped registry. Git/file consumers still add `common` in the **project** manifest (or embed it) — a package `package.json` cannot pull another package from Git by URL.
-- Product recipes stay in A/B. Common only has idempotent `Ensure*` helpers.
+---
+## SDK API Overview
+### **PaymentLinksController**
+- `Init(ICheckoutPurchase callback)` — reads credentials from AppchargeConfig
+- `Init(string checkoutToken, string environment, ICheckoutPurchase callback)`
+- `OpenCheckout(string purchaseId, string parsedUrl, string customerId)`
+- `GetSdkVersion()`
+- `SetConfiguration(string property, object value)` — e.g. `"browserMode"`, `"debugMode"` (platform-specific)
+
+### **Models**
+- `CheckoutResponse`
+- `OrderResponseModel`
+- `ErrorMessage`
+- `BrowserMode` — `Internal`, `External`
+
+### **Interface**
+- `ICheckoutPurchase`
+
+---
+## Migration from 2.x
+- **`customerId` moved to `OpenCheckout`** — `Init` no longer accepts a customer ID
+- **Legacy `OpenCheckout(url, sessionToken, purchaseId)` removed** — use `OpenCheckout(purchaseId, parsedUrl, customerId)`
+- **Price points API removed** — `GetPricePoints()` and related callbacks are no longer available
+- **Browser mode unified** — use `BrowserMode` in `AppchargeConfig` instead of separate iOS/Android browser settings
+
+---
+## Support
+For help or integration questions:
+Contact your Appcharge representative or open an issue in your repository.
