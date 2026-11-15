@@ -183,7 +183,7 @@ namespace Appcharge.PaymentLinks.Platforms.Android
 			}
 
 			_halfScreen = halfScreen;
-			_bridgeApi.Call<bool>("enableHalfScreen", halfScreen);
+			_bridgeApi.Call<bool>("setHalfScreen", halfScreen);
 		}
 
 		public void OnInitialized()
